@@ -1,7 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"github.com/sirupsen/logrus"
+	"github.com/slack-go/slack"
+
+	"github.com/kanziw/howareyou/config"
+)
 
 func main() {
-	fmt.Println("Hello World")
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+
+	setting := config.NewSetting()
+	_ = slack.New(setting.SlackBotClientSecret)
 }
