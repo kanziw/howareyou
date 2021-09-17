@@ -20,7 +20,7 @@ run:
 ## format: format files
 format:
 	@go get -d github.com/incu6us/goimports-reviser
-	find . -type f -name "*.go" | xargs -n 1 goimports-reviser -rm-unused -project-name github.com/kanziw -file-path
+	find . -type f -name "*.go" -exec goimports-reviser -rm-unused -project-name github.com/kanziw -file-path {} \;
 	gofmt -s -w .
 	go mod tidy
 
