@@ -19,8 +19,8 @@ run:
 .PHONY: format
 ## format: format files
 format:
-	@go get -d golang.org/x/tools/cmd/goimports
-	goimports -local github.com/kanziw -w .
+	@go get -d github.com/incu6us/goimports-reviser
+	find . -type f -name "*.go" | xargs -n 1 goimports-reviser -rm-unused -project-name github.com/kanziw -file-path
 	gofmt -s -w .
 	go mod tidy
 
