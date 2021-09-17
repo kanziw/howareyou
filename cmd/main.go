@@ -7,6 +7,7 @@ import (
 
 	"github.com/kanziw/howareyou/config"
 	"github.com/kanziw/howareyou/server"
+	"github.com/kanziw/howareyou/service"
 )
 
 func main() {
@@ -22,8 +23,14 @@ func main() {
 		api,
 		socketmode.OptionDebug(setting.IsDebug),
 	)
+	cfg := config.New(
+		setting,
+		api,
+		client,
+		service.New(api),
+	)
 
-	s := server.NewSocketServer(client, api)
+	s := server.NewSocketServer(cfg)
 	go s.Listen()
 
 	if err := client.Run(); err != nil {

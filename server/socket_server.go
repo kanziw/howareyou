@@ -7,10 +7,10 @@ import (
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 	"github.com/slack-go/slack/socketmode"
 
+	"github.com/kanziw/howareyou/config"
 	"github.com/kanziw/howareyou/server/handler"
 )
 
@@ -19,12 +19,11 @@ type SocketServer interface {
 }
 
 type DefaultSocketServer struct {
-	client *socketmode.Client
-	api    *slack.Client
+	cfg *config.Config
 }
 
 func (s *DefaultSocketServer) Listen() {
-	for evt := range s.client.Events {
+	for evt := range s.cfg.SocketClient().Events {
 		ctx := ctxlogrus.ToContext(
 			grpc_ctxtags.SetInContext(context.Background(), grpc_ctxtags.NewTags()),
 			logrus.WithField("evt.type", evt.Type),
@@ -33,19 +32,19 @@ func (s *DefaultSocketServer) Listen() {
 			switch evt.Type {
 			case socketmode.RequestTypeHello:
 			case socketmode.EventTypeConnecting:
-				s.client.Debugln("Connecting to Slack with Socket Mode...")
+				s.cfg.SocketClient().Debugln("Connecting to Slack with Socket Mode...")
 			case socketmode.EventTypeConnectionError:
-				s.client.Debugln("debug", "Connection failed. Retrying later...")
+				s.cfg.SocketClient().Debugln("debug", "Connection failed. Retrying later...")
 			case socketmode.EventTypeConnected:
-				s.client.Debugln("debug", "Connected to Slack with Socket Mode.")
+				s.cfg.SocketClient().Debugln("debug", "Connected to Slack with Socket Mode.")
 			case socketmode.EventTypeEventsAPI:
 				eventsAPIEvent, ok := evt.Data.(slackevents.EventsAPIEvent)
 				if !ok {
 					return errors.New("unknown event type:" + string(evt.Type))
 				}
-				s.client.Ack(*evt.Request)
-				if err := handler.EventsAPIHandler(ctx, eventsAPIEvent, s.api); err != nil {
-					s.client.Debugf(err.Error())
+				s.cfg.SocketClient().Ack(*evt.Request)
+				if err := handler.EventsAPIHandler(ctx, eventsAPIEvent, s.cfg.SlackAPI()); err != nil {
+					s.cfg.SocketClient().Debugf(err.Error())
 					return err
 				}
 			// TODO
@@ -65,9 +64,6 @@ func (s *DefaultSocketServer) Listen() {
 	}
 }
 
-func NewSocketServer(client *socketmode.Client, api *slack.Client) SocketServer {
-	return &DefaultSocketServer{
-		client: client,
-		api:    api,
-	}
+func NewSocketServer(cfg *config.Config) SocketServer {
+	return &DefaultSocketServer{cfg: cfg}
 }
