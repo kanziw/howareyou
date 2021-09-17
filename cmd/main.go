@@ -23,7 +23,7 @@ func main() {
 		socketmode.OptionDebug(setting.IsDebug),
 	)
 
-	s := server.NewSocketServer(client)
+	s := server.NewSocketServer(client, api)
 	go s.Listen()
 
 	if err := client.Run(); err != nil {

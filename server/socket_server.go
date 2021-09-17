@@ -7,6 +7,7 @@ import (
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 	"github.com/slack-go/slack/socketmode"
 
@@ -19,6 +20,7 @@ type SocketServer interface {
 
 type DefaultSocketServer struct {
 	client *socketmode.Client
+	api    *slack.Client
 }
 
 func (s *DefaultSocketServer) Listen() {
@@ -42,7 +44,7 @@ func (s *DefaultSocketServer) Listen() {
 					return errors.New("unknown event type:" + string(evt.Type))
 				}
 				s.client.Ack(*evt.Request)
-				if err := handler.EventsAPIHandler(ctx, eventsAPIEvent); err != nil {
+				if err := handler.EventsAPIHandler(ctx, eventsAPIEvent, s.api); err != nil {
 					s.client.Debugf(err.Error())
 					return err
 				}
@@ -63,8 +65,9 @@ func (s *DefaultSocketServer) Listen() {
 	}
 }
 
-func NewSocketServer(client *socketmode.Client) SocketServer {
+func NewSocketServer(client *socketmode.Client, api *slack.Client) SocketServer {
 	return &DefaultSocketServer{
 		client: client,
+		api:    api,
 	}
 }
