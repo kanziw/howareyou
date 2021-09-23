@@ -1,12 +1,15 @@
 package main
 
 import (
-	"github.com/sirupsen/logrus"
-	"github.com/slack-go/slack"
-	"github.com/slack-go/slack/socketmode"
+	"context"
 
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/slack-go/slack/slackevents"
+
+	"github.com/kanziw/go-slack"
+	"github.com/kanziw/go-slack/handler"
 	"github.com/kanziw/howareyou/config"
-	"github.com/kanziw/howareyou/server"
 	"github.com/kanziw/howareyou/service"
 )
 
@@ -14,26 +17,34 @@ func main() {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 
 	setting := config.NewSetting()
-	api := slack.New(
-		setting.SlackBotToken,
-		slack.OptionDebug(setting.IsDebug),
-		slack.OptionAppLevelToken(setting.SlackRTMToken),
-	)
-	client := socketmode.New(
-		api,
-		socketmode.OptionDebug(setting.IsDebug),
-	)
-	cfg := config.New(
-		setting,
-		api,
-		client,
-		service.New(api),
-	)
 
-	s := server.NewSocketServer(cfg)
+	s := slack.NewSocketServer(
+		setting.SlackBotToken,
+		setting.SlackRTMToken,
+		slack.WithDebug(false),
+	)
+	svc := service.New(s.SlackAPI())
+
+	s.OnAppMentionCommand("start", func(ctx context.Context, d *slackevents.AppMentionEvent, api *slack.Client, args []string) error {
+		if len(args) == 0 {
+			return errors.WithStack(handler.ErrInvalidCommand)
+		}
+
+		userGroup := args[0]
+		if _, err := api.GetUserGroupMembersContext(ctx, userGroup); err != nil {
+			if err.Error() == "no_such_subteam" {
+				// It's not important. Ignore
+				_ = service.SendMessage(ctx, api, d.Channel, userGroup+" is not a user group")
+				return errors.WithStack(handler.ErrInvalidCommand)
+			}
+			return errors.WithStack(err)
+		}
+		return svc.StartHowAreYou(ctx, d.Channel, userGroup)
+	})
+
 	go s.Listen()
 
-	if err := client.Run(); err != nil {
+	if err := s.Run(); err != nil {
 		logrus.Fatal(err)
 	}
 }

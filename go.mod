@@ -6,12 +6,13 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
-	github.com/slack-go/slack v0.9.4
+	github.com/slack-go/slack v0.9.5
 )
 
 require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/kanziw/go-slack v0.0.0-20210923213151-74fb26b4ab16 // indirect
 	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
 	golang.org/x/sys v0.0.0-20210510120138-977fb7262007 // indirect
 	golang.org/x/text v0.3.6 // indirect
