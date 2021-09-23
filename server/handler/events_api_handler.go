@@ -10,6 +10,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
+
+	"github.com/kanziw/howareyou/service"
 )
 
 const (
@@ -20,7 +22,12 @@ const (
 
 var errUnexpectedInnerEventData = errors.New("unexpected evt.data.inner_event.data")
 
-func EventsAPIHandler(ctx context.Context, eventsAPIEvent slackevents.EventsAPIEvent, api *slack.Client) error {
+func EventsAPIHandler(
+	ctx context.Context,
+	eventsAPIEvent slackevents.EventsAPIEvent,
+	api *slack.Client,
+	svc service.Service,
+) error {
 	tags := grpc_ctxtags.Extract(ctx)
 	tags.Set(ctxTagsEventDataType, eventsAPIEvent.Type)
 	tags.Set(ctxTagsKeyInnerEventType, eventsAPIEvent.InnerEvent.Type)
@@ -41,7 +48,7 @@ func EventsAPIHandler(ctx context.Context, eventsAPIEvent slackevents.EventsAPIE
 
 		ss := strings.Split(strings.TrimSpace(d.Text), " ")
 		if len(ss) < 2 {
-			return sendHelpMessage(ctx, api, d.Channel)
+			return service.SendHelpMessage(ctx, api, d.Channel)
 		}
 
 		command := strings.ToLower(ss[1])
@@ -53,22 +60,17 @@ func EventsAPIHandler(ctx context.Context, eventsAPIEvent slackevents.EventsAPIE
 			}
 
 			userGroup := args[0]
-			_, err := api.GetUserGroupMembersContext(ctx, userGroup)
-			if err != nil {
+			if _, err := api.GetUserGroupMembersContext(ctx, userGroup); err != nil {
 				if err.Error() == "no_such_subteam" {
-					_ = sendMessage(ctx, api, d.Channel, userGroup+" is not a user group")
-					return sendHelpMessage(ctx, api, d.Channel)
+					// It's not important. Ignore
+					_ = service.SendMessage(ctx, api, d.Channel, userGroup+" is not a user group")
+					return service.SendHelpMessage(ctx, api, d.Channel)
 				}
 				return errors.WithStack(err)
 			}
-
-			// TODO: Upsert Schedule into DB
-
-			if err := sendMessage(ctx, api, d.Channel, "Let's start HowAreYou!"); err != nil {
-				return errors.WithStack(err)
-			}
+			return svc.StartHowAreYou(ctx, d.Channel, userGroup)
 		}
-		return sendHelpMessage(ctx, api, d.Channel)
+		return service.SendHelpMessage(ctx, api, d.Channel)
 	case slackevents.ReactionAdded:
 		d, ok := eventsAPIEvent.InnerEvent.Data.(*slackevents.ReactionAddedEvent)
 		if !ok {
@@ -85,19 +87,4 @@ func EventsAPIHandler(ctx context.Context, eventsAPIEvent slackevents.EventsAPIE
 	}
 
 	return errors.New("unsupported Events API event received")
-}
-
-func sendMessage(ctx context.Context, api *slack.Client, channel, msg string) error {
-	if _, _, _, err := api.SendMessageContext(ctx, channel, slack.MsgOptionText(msg, false)); err != nil {
-		return errors.WithStack(err)
-	}
-	return nil
-}
-
-// TODO
-func sendHelpMessage(ctx context.Context, api *slack.Client, channel string) error {
-	if err := sendMessage(ctx, api, channel, "help message"); err != nil {
-		return errors.WithStack(err)
-	}
-	return nil
 }
