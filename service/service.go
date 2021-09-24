@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pkg/errors"
-
 	"github.com/kanziw/go-slack"
+
+	"github.com/pkg/errors"
 )
 
 type Service interface {

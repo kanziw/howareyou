@@ -3,12 +3,12 @@ package main
 import (
 	"context"
 
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-
 	"github.com/kanziw/go-slack"
 	"github.com/kanziw/howareyou/config"
 	"github.com/kanziw/howareyou/service"
+
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
