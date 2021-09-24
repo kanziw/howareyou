@@ -5,10 +5,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"github.com/slack-go/slack/slackevents"
 
 	"github.com/kanziw/go-slack"
-	"github.com/kanziw/go-slack/handler"
 	"github.com/kanziw/howareyou/config"
 	"github.com/kanziw/howareyou/service"
 )
@@ -25,17 +23,17 @@ func main() {
 	)
 	svc := service.New(s.SlackAPI())
 
-	s.OnAppMentionCommand("start", func(ctx context.Context, d *slackevents.AppMentionEvent, api *slack.Client, args []string) error {
+	s.OnAppMentionCommand("start", func(ctx context.Context, d *slack.AppMentionEvent, api *slack.Client, args []string) error {
 		if len(args) == 0 {
-			return errors.WithStack(handler.ErrInvalidCommand)
+			return errInvalidCommand(d.Channel)
 		}
 
 		userGroup := args[0]
 		if _, err := api.GetUserGroupMembersContext(ctx, userGroup); err != nil {
 			if err.Error() == "no_such_subteam" {
 				// It's not important. Ignore
-				_ = service.SendMessage(ctx, api, d.Channel, userGroup+" is not a user group")
-				return errors.WithStack(handler.ErrInvalidCommand)
+				_ = slack.SendMessage(ctx, api, d.Channel, userGroup+" is not a user group")
+				return errInvalidCommand(d.Channel)
 			}
 			return errors.WithStack(err)
 		}
@@ -47,4 +45,8 @@ func main() {
 	if err := s.Run(); err != nil {
 		logrus.Fatal(err)
 	}
+}
+
+func errInvalidCommand(channel string) error {
+	return slack.NewSlackError(errors.WithStack(slack.ErrInvalidCommand), slack.WithChannel(channel))
 }

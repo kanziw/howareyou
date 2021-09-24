@@ -5,7 +5,8 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
-	"github.com/slack-go/slack"
+
+	"github.com/kanziw/go-slack"
 )
 
 type Service interface {
@@ -19,14 +20,14 @@ type DefaultService struct {
 func (s *DefaultService) StartHowAreYou(ctx context.Context, channel, userGroup string) error {
 	// TODO: Upsert Schedule into DB
 
-	if err := SendMessage(ctx, s.api, channel, "Let's start HowAreYou!"); err != nil {
+	if err := slack.SendMessage(ctx, s.api, channel, "Let's start HowAreYou!"); err != nil {
 		return errors.WithStack(err)
 	}
 	return nil
 }
 
 func (s *DefaultService) SendHowAreYou(ctx context.Context, channel, userGroup string) error {
-	if err := SendMessage(
+	if err := slack.SendMessage(
 		ctx,
 		s.api,
 		channel,
