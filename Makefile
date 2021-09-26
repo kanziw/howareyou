@@ -45,11 +45,14 @@ lint:
 	golangci-lint run ./...
 
 .PHONY: generate
-## generate: generate source code for mocking
+## generate: generate source code for mocking and DB models
 generate:
 	@go install golang.org/x/tools/cmd/stringer@v0.1.6
 	@go install github.com/golang/mock/mockgen@v1.6.0
 	go generate ./...
+	@go install github.com/volatiletech/sqlboiler/v4@v4.6.0
+	@go install github.com/volatiletech/sqlboiler/v4/drivers/sqlboiler-mysql@v4.6.0
+	sqlboiler --wipe --no-tests -p model -o ./model mysql
 	$(MAKE) format
 
 .PHONY: help

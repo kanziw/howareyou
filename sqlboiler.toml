@@ -1,0 +1,11 @@
+[mysql]
+  dbname    = "howareyou"
+  host      = "localhost"
+  port      = 3306
+  user      = "root"
+  pass      = "root"
+  sslmode   = "false"
+  blacklist = [
+    "howareyou.created_at",
+    "howareyou.updated_at",
+  ]
