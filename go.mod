@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/friendsofgo/errors v0.9.2
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/kanziw/go-slack v0.0.0-20210926053031-72eefb2ce29d
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1

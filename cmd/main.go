@@ -3,18 +3,30 @@ package main
 import (
 	"context"
 
-	"github.com/kanziw/go-slack"
-	"github.com/kanziw/howareyou/config"
-	"github.com/kanziw/howareyou/service"
-
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
+	"github.com/kanziw/go-slack"
+	"github.com/kanziw/howareyou/config"
+	"github.com/kanziw/howareyou/mysql"
+	"github.com/kanziw/howareyou/service"
 )
 
 func main() {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
+	log := logrus.StandardLogger()
 
 	setting := config.NewSetting()
+
+	db, err := mysql.GetDB(setting)
+	if err != nil {
+		log.WithError(err).Fatal("mysql.GetDB")
+	}
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Error(err)
+		}
+	}()
 
 	s := slack.NewSocketServer(
 		setting.SlackBotToken,
