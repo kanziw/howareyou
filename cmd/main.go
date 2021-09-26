@@ -33,7 +33,7 @@ func main() {
 		setting.SlackRTMToken,
 		slack.WithDebug(false),
 	)
-	svc := service.New(s.SlackAPI())
+	svc := service.New(db, s.SlackAPI())
 
 	s.OnAppMentionCommand("start", func(ctx context.Context, d *slack.AppMentionEvent, api *slack.Client, args []string) error {
 		if len(args) == 0 {

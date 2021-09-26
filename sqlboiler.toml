@@ -6,6 +6,6 @@
   pass      = "root"
   sslmode   = "false"
   blacklist = [
-    "howareyou.created_at",
-    "howareyou.updated_at",
+    "user_group.created_at",
+    "user_group.updated_at",
   ]

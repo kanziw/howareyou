@@ -23,11 +23,9 @@ import (
 
 // UserGroup is an object representing the database table.
 type UserGroup struct {
-	UserGroupID      int64     `boil:"user_group_id" json:"user_group_id" toml:"user_group_id" yaml:"user_group_id"`
-	UserGroupSlackID string    `boil:"user_group_slack_id" json:"user_group_slack_id" toml:"user_group_slack_id" yaml:"user_group_slack_id"`
-	ChannelSlackID   string    `boil:"channel_slack_id" json:"channel_slack_id" toml:"channel_slack_id" yaml:"channel_slack_id"`
-	CreatedAt        time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt        time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	UserGroupID      int64  `boil:"user_group_id" json:"user_group_id" toml:"user_group_id" yaml:"user_group_id"`
+	UserGroupSlackID string `boil:"user_group_slack_id" json:"user_group_slack_id" toml:"user_group_slack_id" yaml:"user_group_slack_id"`
+	ChannelSlackID   string `boil:"channel_slack_id" json:"channel_slack_id" toml:"channel_slack_id" yaml:"channel_slack_id"`
 
 	R *userGroupR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userGroupL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -37,28 +35,20 @@ var UserGroupColumns = struct {
 	UserGroupID      string
 	UserGroupSlackID string
 	ChannelSlackID   string
-	CreatedAt        string
-	UpdatedAt        string
 }{
 	UserGroupID:      "user_group_id",
 	UserGroupSlackID: "user_group_slack_id",
 	ChannelSlackID:   "channel_slack_id",
-	CreatedAt:        "created_at",
-	UpdatedAt:        "updated_at",
 }
 
 var UserGroupTableColumns = struct {
 	UserGroupID      string
 	UserGroupSlackID string
 	ChannelSlackID   string
-	CreatedAt        string
-	UpdatedAt        string
 }{
 	UserGroupID:      "user_group.user_group_id",
 	UserGroupSlackID: "user_group.user_group_slack_id",
 	ChannelSlackID:   "user_group.channel_slack_id",
-	CreatedAt:        "user_group.created_at",
-	UpdatedAt:        "user_group.updated_at",
 }
 
 // Generated where
@@ -109,39 +99,14 @@ func (w whereHelperstring) NIN(slice []string) qm.QueryMod {
 	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
 }
 
-type whereHelpertime_Time struct{ field string }
-
-func (w whereHelpertime_Time) EQ(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.EQ, x)
-}
-func (w whereHelpertime_Time) NEQ(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.NEQ, x)
-}
-func (w whereHelpertime_Time) LT(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpertime_Time) LTE(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpertime_Time) GT(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-
 var UserGroupWhere = struct {
 	UserGroupID      whereHelperint64
 	UserGroupSlackID whereHelperstring
 	ChannelSlackID   whereHelperstring
-	CreatedAt        whereHelpertime_Time
-	UpdatedAt        whereHelpertime_Time
 }{
 	UserGroupID:      whereHelperint64{field: "`user_group`.`user_group_id`"},
 	UserGroupSlackID: whereHelperstring{field: "`user_group`.`user_group_slack_id`"},
 	ChannelSlackID:   whereHelperstring{field: "`user_group`.`channel_slack_id`"},
-	CreatedAt:        whereHelpertime_Time{field: "`user_group`.`created_at`"},
-	UpdatedAt:        whereHelpertime_Time{field: "`user_group`.`updated_at`"},
 }
 
 // UserGroupRels is where relationship names are stored.
@@ -161,9 +126,9 @@ func (*userGroupR) NewStruct() *userGroupR {
 type userGroupL struct{}
 
 var (
-	userGroupAllColumns            = []string{"user_group_id", "user_group_slack_id", "channel_slack_id", "created_at", "updated_at"}
+	userGroupAllColumns            = []string{"user_group_id", "user_group_slack_id", "channel_slack_id"}
 	userGroupColumnsWithoutDefault = []string{"user_group_slack_id", "channel_slack_id"}
-	userGroupColumnsWithDefault    = []string{"user_group_id", "created_at", "updated_at"}
+	userGroupColumnsWithDefault    = []string{"user_group_id"}
 	userGroupPrimaryKeyColumns     = []string{"user_group_id"}
 )
 
@@ -486,16 +451,6 @@ func (o *UserGroup) Insert(ctx context.Context, exec boil.ContextExecutor, colum
 	}
 
 	var err error
-	if !boil.TimestampsAreSkipped(ctx) {
-		currTime := time.Now().In(boil.GetLocation())
-
-		if o.CreatedAt.IsZero() {
-			o.CreatedAt = currTime
-		}
-		if o.UpdatedAt.IsZero() {
-			o.UpdatedAt = currTime
-		}
-	}
 
 	if err := o.doBeforeInsertHooks(ctx, exec); err != nil {
 		return err
@@ -598,12 +553,6 @@ CacheNoHooks:
 // See boil.Columns.UpdateColumnSet documentation to understand column list inference for updates.
 // Update does not automatically update the record in case of default values. Use .Reload() to refresh the records.
 func (o *UserGroup) Update(ctx context.Context, exec boil.ContextExecutor, columns boil.Columns) (int64, error) {
-	if !boil.TimestampsAreSkipped(ctx) {
-		currTime := time.Now().In(boil.GetLocation())
-
-		o.UpdatedAt = currTime
-	}
-
 	var err error
 	if err = o.doBeforeUpdateHooks(ctx, exec); err != nil {
 		return 0, err
@@ -738,14 +687,6 @@ var mySQLUserGroupUniqueColumns = []string{
 func (o *UserGroup) Upsert(ctx context.Context, exec boil.ContextExecutor, updateColumns, insertColumns boil.Columns) error {
 	if o == nil {
 		return errors.New("model: no user_group provided for upsert")
-	}
-	if !boil.TimestampsAreSkipped(ctx) {
-		currTime := time.Now().In(boil.GetLocation())
-
-		if o.CreatedAt.IsZero() {
-			o.CreatedAt = currTime
-		}
-		o.UpdatedAt = currTime
 	}
 
 	if err := o.doBeforeUpsertHooks(ctx, exec); err != nil {
