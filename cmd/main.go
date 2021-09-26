@@ -29,14 +29,15 @@ func main() {
 		}
 
 		userGroup := args[0]
-		if _, err := api.GetUserGroupMembersContext(ctx, userGroup); err != nil {
-			if err.Error() == "no_such_subteam" {
-				// It's not important. Ignore
-				_ = slack.SendMessage(ctx, api, d.Channel, userGroup+" is not a user group")
-				return errInvalidCommand(d.Channel)
-			}
-			return errors.WithStack(err)
-		}
+		// for test in free plan
+		//if _, err := api.GetUserGroupMembersContext(ctx, userGroup); err != nil {
+		//	if err.Error() == "no_such_subteam" {
+		//		// It's not important. Ignore
+		//		_ = slack.SendMessage(ctx, api, d.Channel, userGroup+" is not a user group")
+		//		return errInvalidCommand(d.Channel)
+		//	}
+		//	return errors.WithStack(err)
+		//}
 		return svc.StartHowAreYou(ctx, d.Channel, userGroup)
 	})
 
